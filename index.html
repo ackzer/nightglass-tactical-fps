@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIGHTGLASS // Breach Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root { --cyan:#8bf3e5; --cyan-dim:#3e8f89; --amber:#f5bd63; --red:#f26e6e; --ink:#071113; --panel:rgba(9,22,23,.78); }
+    * { box-sizing:border-box; }
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#050b0d; color:#d8eee8; font-family:'Barlow Condensed', sans-serif; }
+    #game { position:fixed; inset:0; }
+    canvas { display:block; width:100%; height:100%; }
+    .hud { position:fixed; inset:0; pointer-events:none; text-transform:uppercase; letter-spacing:.08em; }
+    .topbar { position:absolute; top:0; left:0; right:0; height:76px; display:flex; justify-content:space-between; align-items:center; padding:0 32px; background:linear-gradient(180deg,rgba(2,8,9,.78),transparent); }
+    .brand { font-size:24px; font-weight:800; letter-spacing:.22em; color:var(--cyan); text-shadow:0 0 18px #2caaa0; }
+    .brand span { display:block; color:#6e9690; font-size:10px; letter-spacing:.4em; margin-top:-2px; }
+    .mission { text-align:right; font:12px 'Share Tech Mono', monospace; color:#93aba6; line-height:1.55; }
+    .mission b { color:var(--amber); font-weight:400; }
+    .left-info { position:absolute; left:28px; bottom:25px; width:260px; font:11px 'Share Tech Mono', monospace; color:#8aa7a0; }
+    .objective { border-left:2px solid var(--amber); padding:9px 14px; background:linear-gradient(90deg,rgba(11,26,26,.75),transparent); }
+    .objective strong { display:block; color:var(--amber); font:700 16px 'Barlow Condensed'; letter-spacing:.12em; margin-bottom:4px; }
+    .status { margin-top:12px; display:flex; gap:10px; align-items:center; }
+    .dot { width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan); }
+    .right-info { position:absolute; right:28px; bottom:25px; text-align:right; }
+    .ammo { font:700 58px 'Share Tech Mono', monospace; line-height:.85; color:#e9fff9; text-shadow:0 0 14px rgba(139,243,229,.22); }
+    .ammo small { color:#698681; font-size:18px; }
+    .weapon { color:var(--cyan); font:700 17px 'Barlow Condensed'; letter-spacing:.2em; }
+    .health { margin-top:12px; font:12px 'Share Tech Mono'; color:#8aa7a0; }
+    .health i { display:inline-block; width:114px; height:5px; margin-left:8px; vertical-align:middle; background:#20413f; }
+    .health i::after { content:''; display:block; height:100%; width:82%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+    .crosshair { position:absolute; top:50%;left:50%; width:40px;height:40px; transform:translate(-50%,-50%); }
+    .crosshair::before,.crosshair::after { content:''; position:absolute; background:rgba(210,255,246,.85); box-shadow:0 0 7px var(--cyan); }
+    .crosshair::before { width:2px;height:12px;left:19px;top:0; box-shadow:0 28px 7px var(--cyan); }
+    .crosshair::after { height:2px;width:12px;left:0;top:19px; box-shadow:28px 0 7px var(--cyan); }
+    .center-prompt { position:absolute; top:57%; left:50%; transform:translateX(-50%); color:var(--amber); font:13px 'Share Tech Mono'; opacity:0; transition:opacity .2s; text-align:center; text-shadow:0 0 10px #000; }
+    .center-prompt.on { opacity:1; }
+    .radar { position:absolute; top:92px; right:30px; width:130px; height:130px; border:1px solid rgba(139,243,229,.32); border-radius:50%; background:radial-gradient(circle,rgba(73,156,144,.12),rgba(0,0,0,0) 68%); overflow:hidden; }
+    .radar::before { content:''; position:absolute; inset:50% 0 auto; border-top:1px solid rgba(139,243,229,.2); } .radar::after { content:''; position:absolute; inset:0 50% auto; height:100%; border-left:1px solid rgba(139,243,229,.2); }
+    .sweep { position:absolute; width:65px;height:1px;left:50%;top:50%; transform-origin:left; background:linear-gradient(90deg,var(--cyan),transparent); animation:sweep 3s linear infinite; }
+    @keyframes sweep { to { transform:rotate(360deg); } }
+    .blip { position:absolute; width:5px;height:5px;border-radius:50%; background:var(--red); box-shadow:0 0 9px var(--red); }
+    .vignette { position:absolute; inset:0; background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.46) 100%); }
+    #start { position:fixed; inset:0; display:grid; place-items:center; z-index:5; background:radial-gradient(ellipse at center,rgba(17,45,45,.8),rgba(3,9,10,.98)); }
+    .start-card { width:min(570px,calc(100% - 48px)); border:1px solid rgba(139,243,229,.38); padding:42px 46px; background:rgba(5,17,18,.84); box-shadow:0 0 60px rgba(35,151,140,.12), inset 0 0 40px rgba(41,132,121,.05); }
+    .start-card h1 { margin:0; font-size:64px; letter-spacing:.12em; line-height:.8; color:var(--cyan); text-shadow:0 0 24px rgba(139,243,229,.3); }
+    .start-card h1 small { display:block; font-size:16px; letter-spacing:.42em; color:#9bbab3; margin:18px 0 28px; }
+    .start-card p { font:13px 'Share Tech Mono'; color:#9ab5af; line-height:1.7; max-width:430px; }
+    .start-card button { margin-top:22px; border:1px solid var(--cyan); background:rgba(67,157,146,.13); color:var(--cyan); padding:14px 24px; font:700 16px 'Barlow Condensed'; letter-spacing:.2em; cursor:pointer; transition:.2s; }
+    .start-card button:hover { background:var(--cyan); color:#061011; box-shadow:0 0 28px rgba(139,243,229,.35); }
+    .keys { margin-top:24px; display:flex; gap:15px; color:#668b84; font:11px 'Share Tech Mono'; }
+    @media (max-width:700px) { .topbar{padding:0 16px}.radar{top:80px;right:16px;transform:scale(.8);transform-origin:top right}.left-info{left:16px}.right-info{right:16px}.start-card{padding:30px}.start-card h1{font-size:45px} }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div class="hud">
+    <div class="topbar"><div class="brand">NIGHTGLASS<span>BREACH PROTOCOL // 07</span></div><div class="mission">OPERATION: <b>BLACK CURRENT</b><br>SECTOR 04 / 02:17:38 UTC</div></div>
+    <div class="radar"><div class="sweep"></div><i class="blip" style="left:72%;top:30%"></i><i class="blip" style="left:28%;top:66%"></i><i class="blip" style="left:58%;top:76%"></i></div>
+    <div class="crosshair"></div><div class="center-prompt" id="prompt">[ E ] HOLD TO HACK RELAY</div>
+    <div class="left-info"><div class="objective"><strong id="objective">REACH THE RELAY</strong><span id="objectiveSub">Breach the east service corridor.</span></div><div class="status"><i class="dot"></i><span id="status">SQUAD LINK // STABLE</span></div></div>
+    <div class="right-info"><div class="ammo"><span id="ammo">24</span><small> / 96</small></div><div class="weapon">K-77 // CARBINE</div><div class="health">VITALS <i></i> 82</div></div>
+    <div class="vignette"></div>
+  </div>
+  <section id="start"><div class="start-card"><h1>NIGHTGLASS<small>TACTICAL FPS // SINGLE OP</small></h1><p>Infiltrate a drowned relay station, cut the blackout, and extract before the sentry network wakes. Sound travels. Every shot changes the room.</p><button id="deploy">DEPLOY // ENTER SECTOR</button><div class="keys"><span>WASD MOVE</span><span>MOUSE AIM</span><span>CLICK FIRE</span><span>E RELOAD</span></div></div></section>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js';
+    import { PointerLockControls } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/controls/PointerLockControls.js';
+
+    const mount=document.querySelector('#game'), start=document.querySelector('#start'), deploy=document.querySelector('#deploy');
+    const objective=document.querySelector('#objective'), objectiveSub=document.querySelector('#objectiveSub'), statusEl=document.querySelector('#status'), prompt=document.querySelector('#prompt'), ammoEl=document.querySelector('#ammo');
+    const scene=new THREE.Scene(); scene.background=new THREE.Color(0x071113); scene.fog=new THREE.Fog(0x071113,18,75);
+    const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,120); camera.position.set(0,1.7,9);
+    const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.2; mount.appendChild(renderer.domElement);
+    const controls=new PointerLockControls(camera,document.body); scene.add(controls.getObject());
+    const clock=new THREE.Clock(), keys={}, enemies=[], tracers=[]; let started=false, shotCooldown=0, ammo=24, phase=0, health=82, recoil=0;
+    const mat=(color,rough=1,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+    const concrete=mat(0x26383a,.83), dark=mat(0x101b1d,.7,.35), teal=mat(0x1b5c5b,.46,.5), amber=mat(0xb86637,.52,.4), glow=mat(0x70e1d0,.28,.15); 
+    function box(x,y,z,sx,sy,sz,material=concrete){const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+    function cyl(x,y,z,r,h,material=dark){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+    box(0,-.15,0,48,.3,48,dark); box(0,7,0,48,.3,48,dark);
+    for(let x=-22;x<=22;x+=4){ box(x,3.45,-22,1.1,7,.8,concrete); box(x,3.45,22,1.1,7,.8,concrete); }
+    for(let z=-18;z<=18;z+=6){ box(-22,3.45,z,.8,7,1.1,concrete); box(22,3.45,z,.8,7,1.1,concrete); }
+    box(-8,2.2,-8,9,4.4,1.2,concrete); box(9,1.6,-11,7,3.2,1.2,concrete); box(-10,1.4,4,5,2.8,1.4,concrete); box(9,2.5,4,4,5,1.3,concrete);
+    for(let z=-19;z<17;z+=3){box(-3,3.9,z,.12,2.8,.08,teal);box(3,3.9,z,.12,2.8,.08,teal);}
+    for(const [x,z] of [[-16,-17],[15,-16],[-17,12],[17,13],[0,-20]]){cyl(x,2.2,z,.36,4,amber);cyl(x,4.3,z,.62,.12,glow);}
+    for(const [x,z] of [[-15,-5],[15,-4],[-16,16],[15,17],[0,0]]){const light=new THREE.PointLight(0x67dacc,2.2,9);light.position.set(x,4.8,z);scene.add(light);box(x,5,z,.18,.12,.18,glow);}
+    const relay=box(0,1.2,-18,1.1,2.4,.55,teal); box(0,2.6,-18,1.7,.18,.8,glow); const ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,.045,8,64),new THREE.MeshBasicMaterial({color:0x6ee7d7,transparent:true,opacity:.55})); ring.rotation.x=-Math.PI/2; ring.position.set(0,.03,-18);scene.add(ring);
+    const keyLight=new THREE.DirectionalLight(0x8ad7ce,1.6);keyLight.position.set(-10,15,12);keyLight.castShadow=true;keyLight.shadow.mapSize.set(2048,2048);scene.add(keyLight); scene.add(new THREE.HemisphereLight(0x4d827d,0x081012,1.1));
+    function spawnEnemy(x,z){const g=new THREE.Group();g.position.set(x,0,z); const body=new THREE.Mesh(new THREE.CapsuleGeometry(.4,1.05,4,8),dark);body.position.y=1.05;body.castShadow=true;g.add(body); const visor=new THREE.Mesh(new THREE.BoxGeometry(.44,.12,.08),new THREE.MeshBasicMaterial({color:0xf26e6e}));visor.position.set(0,1.42,.36);g.add(visor);g.userData={hp:2,home:new THREE.Vector3(x,0,z),phase:Math.random()*6};scene.add(g);enemies.push(g);}
+    spawnEnemy(-14,-11); spawnEnemy(14,-9); spawnEnemy(-15,9); spawnEnemy(14,12);
+    const gun=new THREE.Group(); const gunBody=box(0,0,0,1,1,1,dark); gunBody.geometry.dispose(); gunBody.geometry=new THREE.BoxGeometry(.22,.22,.9); gunBody.position.set(.37,1.44,-.7); gun.add(gunBody); const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.055,.07,.58,10),dark);barrel.rotation.x=Math.PI/2;barrel.position.set(.37,1.46,-1.32);gun.add(barrel); const sight=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,.2),glow);sight.position.set(.37,1.59,-.83);gun.add(sight);camera.add(gun);
+    function shoot(){if(!started||shotCooldown>0||ammo<=0)return;shotCooldown=.18;ammo--;ammoEl.textContent=String(ammo).padStart(2,'0');recoil=.08; gun.position.z=.1; const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(enemies,true)[0];if(hit){const enemy=hit.object.parent; if(enemy?.userData?.hp){enemy.userData.hp--;enemy.position.y=.08;setTimeout(()=>enemy.position.y=0,80);if(enemy.userData.hp<=0){scene.remove(enemy);enemies.splice(enemies.indexOf(enemy),1);statusEl.textContent='HOSTILE DOWN // '+enemies.length+' REMAIN';}}} const flash=new THREE.PointLight(0xffd08c,8,4);flash.position.copy(camera.position);scene.add(flash);setTimeout(()=>scene.remove(flash),45);}
+    function reload(){if(ammo<24){ammo=24;ammoEl.textContent='24';statusEl.textContent='MAGAZINE // FRESH';}}
+    addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')reload();});addEventListener('keyup',e=>keys[e.code]=false);addEventListener('mousedown',e=>{if(e.button===0)shoot();});
+    deploy.onclick=()=>{start.style.display='none';started=true;controls.lock();};
+    controls.addEventListener('lock',()=>{started=true;});
+    function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);shotCooldown=Math.max(0,shotCooldown-dt);recoil=Math.max(0,recoil-dt*1.6);gun.position.z+=(0.0-gun.position.z)*dt*15;gun.position.y=-(recoil*.22);const dir=new THREE.Vector3();if(keys.KeyW)dir.z-=1;if(keys.KeyS)dir.z+=1;if(keys.KeyA)dir.x-=1;if(keys.KeyD)dir.x+=1;dir.normalize();const speed=keys.ShiftLeft?5.3:3.5;controls.moveRight(dir.x*speed*dt);controls.moveForward(-dir.z*speed*dt);const p=controls.getObject().position;p.x=THREE.MathUtils.clamp(p.x,-20,20);p.z=THREE.MathUtils.clamp(p.z,-20,20);ring.rotation.z+=dt*.45;for(const e of enemies){e.userData.phase+=dt;const d=e.position.distanceTo(p);if(d<15){e.lookAt(p.x,1,e.position.z);e.position.x+=Math.sin(e.userData.phase)*dt*.2;if(Math.random()<dt*.035){health=Math.max(0,health-1);statusEl.textContent='CONTACT // UNDER FIRE';}}}const near=p.distanceTo(new THREE.Vector3(0,0,-18));if(near<3&&phase===0){prompt.classList.add('on');objective.textContent='HOLD THE RELAY';objectiveSub.textContent='Keep the uplink alive. Clear the corridor.';if(keys.KeyE){phase=1;prompt.classList.remove('on');objective.textContent='EXTRACT';objectiveSub.textContent='Blackout is live. Return to the breach point.';statusEl.textContent='RELAY HACKED // 00:45';ring.material.opacity=.15;}}else{prompt.classList.remove('on');}renderer.render(scene,camera);} animate();
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+  </script>
+</body>
+</html>
