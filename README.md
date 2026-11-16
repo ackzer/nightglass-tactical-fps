@@ -1,27 +1,8 @@
 # nightglass-tactical-fps
 
-[
-
-
-MAKE.FUN
-
-threejs-fps-02.svg
-
-](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
-[
-
-MAKE.FUN
-
-rank.svg
-
-](https://make.fun/bounty/threejs-fps-02/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
-[
-
-MAKE.FUN
-
-reward.svg
-
-](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![make.fun · threejs-fps-02](https://make.fun/badge/threejs-fps-02.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![rank](https://make.fun/badge/threejs-fps-02/ackzer/nightglass-tactical-fps/rank.svg)](https://make.fun/bounty/threejs-fps-02/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![reward](https://make.fun/badge/threejs-fps-02/ackzer/nightglass-tactical-fps/reward.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
 
 NIGHTGLASS // Breach Protocol — a tactical first-person shooter that runs entirely in the browser, built with three.js vendored locally (no CDN, works fully offline). Infiltrate a neon-lit facility, fight AI sentries and reach the relay. Press E near the relay to hack it and reveal the extraction objective directing you back to the breach point.
 
