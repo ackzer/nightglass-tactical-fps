@@ -1,0 +1,6 @@
+[
+  { "name": "01.png", "query": "?shot=start&seed=1" },
+  { "name": "02.png", "query": "?shot=play&seed=1" },
+  { "name": "03.png", "query": "?shot=end&seed=1" },
+  { "name": "04.png", "query": "?shot=extra&seed=1" }
+]
