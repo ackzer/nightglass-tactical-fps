@@ -12,8 +12,8 @@ const server = createServer(async (req, res) => {
   const safe = requested.replaceAll('..', '');
   try {
     const body = await readFile(join(root, safe));
-    res.writeHead(200, { 'content-type': mime[extname(safe)] ?? 'application/octet-stream', 'cache-control': 'no-store' });
-    res.end(body);
+    res.writeHead(200, { 'content-type': mime[extname(safe)] ?? 'application/octet-stream', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+    res.end(req.method === 'HEAD' ? undefined : body);
   } catch { res.writeHead(404); res.end('Not found'); }
 });
 const port = Number(process.env.PORT ?? 4173);
